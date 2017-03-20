@@ -1,0 +1,42 @@
+version: '2'
+
+services:
+#    redis_wallet:
+#        image: redis:alpine
+#        ports:
+#            - 6379:6379
+    mongodb_wallet:
+        image: mongo
+        volumes:
+            - "./.data/mongodb:/data/db"
+        ports:
+            - 27017:27017
+    db_wallet:
+        image: mysql
+        volumes:
+            - "./.data/db:/var/lib/mysql"
+        environment:
+            MYSQL_ROOT_PASSWORD: root
+            MYSQL_DATABASE: wallet
+            MYSQL_USER: root
+            MYSQL_PASSWORD: root_pass
+    php_wallet:
+        build: php7-fpm
+        ports:
+            - 9000:9000
+        links:
+            - db_wallet
+#            - redis_wallet
+            - mongodb_wallet
+        volumes:
+            - ../wallet:/var/www/wallet
+    nginx_wallet:
+        build: nginx
+        ports:
+            - 80:80
+        links:
+            - php_wallet
+        volumes_from:
+            - php_wallet
+        volumes:
+            - ./logs/nginx/:/var/log/nginx
